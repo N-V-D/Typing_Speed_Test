@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Speed Game</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            background: #121212;
+            color: #f4f4f4;
+            overflow: hidden;
+        }
+
+        #game-container {
+            max-width: 700px;
+            margin: auto;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 35px;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px #00ff90, 0 0 10px #00ff90, 0 0 20px #00ff90;
+        }
+
+        #text-display {
+            font-size: 22px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            color: #ffffff;
+        }
+
+        #input-box {
+            width: 80%;
+            padding: 40px;
+            font-size: 18px;
+            border: 2px solid #00ff90;
+            border-radius: 10px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        #input-box:focus {
+            border-color: #00ff90;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+        }
+
+        #stats {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #cccccc;
+            text-shadow: 0 0 3px #00ff90, 0 0 5px #00ff90;
+        }
+
+        .correct {
+            color: #00ff00;
+        }
+
+        .incorrect {
+            color: #ff4c4c;
+        }
+
+        button {
+            background: #00ff90;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            color: black;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 10px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #00e68a;
+        }
+
+        #result {
+            margin-top: 25px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff0;
+            text-shadow: 0 0 10px #ff0;
+        }
+
+        .neon-line {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(0, 255, 255, 0.8), rgba(0, 255, 90, 0.8), rgba(255, 0, 255, 0.8));
+            animation: neon 2s ease-in-out infinite;
+        }
+
+        @keyframes neon {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background SVG -->
+    <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0; z-index: -1;">
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color: #764ba2; stop-opacity: 1" />
+                <stop offset="100%" style="stop-color: #667eea; stop-opacity: 1" />
+            </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grad1)" />
+    </svg>
+
+    <div id="game-container">
+        <h1>Typing Speed Game</h1>
+        <div class="neon-line"></div>
+        <p id="text-display"></p>
+        <input type="text" id="input-box" placeholder="Start typing..." autofocus>
+        <div id="stats">
+            <p>Time: <span id="time">0</span> sec</p>
+            <p>WPM: <span id="wpm">0</span></p>
+            <p>Accuracy: <span id="accuracy">100</span>%</p>
+            <p>Characters Typed: <span id="char-count">0</span></p>
+        </div>
+        <button onclick="restartGame()">Restart</button>
+        <button onclick="submitResult()">Submit</button>
+        <p id="result"></p>
+    </div>
+    <script>
+const sentences = [
+    "She stealthily slid the sleek, shimmering silver sword into its sheath, silently sighing in satisfaction.",
+    "Six slippery snails slid southward on a slimy, slushy sidewalk while the sun slowly set.",
+    "Fickle fortune favors fearless fighters, but foolish folly fosters failure and frustration.",
+    "The shimmering shadows of the sycamore trees swayed subtly in the summer breeze.",
+    "Rarely do remarkably resilient rhinos roam recklessly through rapidly raging rivers.",
+    "The unparalleled intricacies of quantum mechanics continue to perplex even the most erudite scholars in their endless pursuit of scientific truth.",
+    "Through the labyrinth of language and logic, linguists laboriously link lexicons to lively literature.",
+    "Despite the perpetual pursuit of perfection, profound progress prevails primarily through persistent practice and patience.",
+    "An astonishingly accurate astronomical alignment allowed ancient architects to anticipate annual astronomical anomalies.",
+    "The paradox of paradoxes paradoxically presents an infinite interplay of paradoxical propositions, perplexing philosophers for centuries.",
+    "3.14159 is π, but in some calculations, 22/7 is often used as an approximation—though neither is perfectly precise.",
+    "$4,567.89 is greater than $1,234.56, yet both pale in comparison to the billionaire's $10,000,000.00 fortune.",
+    "When programming, developers use { }, [ ], ( ), and < > to structure and format their code correctly.",
+    "To log in, enter user123@example.com and password P@$$w0rD!, then press Enter to proceed.",
+    "If x = 7y + 4, and y = (3x - 2)/5, then solving for z when z = x² - y should be your next challenge.",
+    "Supercalifragilisticexpialidocious may be a fun word to say, but pneumonoultramicroscopicsilicovolcanoconiosis is the longest in the dictionary.",
+    "Schadenfreude is the German term for deriving pleasure from someone else's misfortune.",
+    "The French phrase C’est la vie means That’s life, often used to accept fate with a shrug.",
+    "Antidisestablishmentarianism refers to opposition against the withdrawal of state support for a particular church.",
+    "Floccinaucinihilipilification, one of the longest non-technical words, means the act of regarding something as unimportant.",
+    "ThIsIsAChallengingTypingTestWithoutSpacesHowFastCanYouTypeThis?",
+    "gh78@#Rt!fG%&*kL(]_29ZZmqp@",
+    "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890"
+];
+
+        let startTime, interval;
+        let correctChars = 0, totalChars = 0;
+        const textDisplay = document.getElementById("text-display");
+        const inputBox = document.getElementById("input-box");
+        const timeDisplay = document.getElementById("time");
+        const wpmDisplay = document.getElementById("wpm");
+        const accuracyDisplay = document.getElementById("accuracy");
+        const charCountDisplay = document.getElementById("char-count");
+        const resultDisplay = document.getElementById("result");
+        let currentSentence = "";
+
+        function startGame() {
+            currentSentence = sentences[Math.floor(Math.random() * sentences.length)];
+            textDisplay.innerHTML = currentSentence;
+            inputBox.value = "";
+            startTime = null;
+            correctChars = 0;
+            totalChars = 0;
+            clearInterval(interval);
+            timeDisplay.textContent = "0";
+            wpmDisplay.textContent = "0";
+            accuracyDisplay.textContent = "100";
+            charCountDisplay.textContent = "0";
+            resultDisplay.textContent = "";
+        }
+
+        inputBox.addEventListener("input", () => {
+            if (!startTime) {
+                startTime = new Date().getTime();
+                interval = setInterval(updateStats, 1000);
+            }
+            totalChars++;
+            charCountDisplay.textContent = totalChars;
+            checkInput();
+        });
+
+        function checkInput() {
+            let inputText = inputBox.value;
+            let formattedText = "";
+            correctChars = 0;
+            for (let i = 0; i < currentSentence.length; i++) {
+                if (i < inputText.length) {
+                    if (inputText[i] === currentSentence[i]) {
+                        formattedText += `<span class='correct'>${currentSentence[i]}</span>`;
+                        correctChars++;
+                    } else {
+                        formattedText += `<span class='incorrect'>${currentSentence[i]}</span>`;
+                    }
+                } else {
+                    formattedText += currentSentence[i];
+                }
+            }
+            textDisplay.innerHTML = formattedText;
+        }
+
+        function updateStats() {
+            let elapsedTime = (new Date().getTime() - startTime) / 1000;
+            timeDisplay.textContent = elapsedTime.toFixed(0);
+            let wordsTyped = correctChars / 5;
+            let wpm = Math.round((wordsTyped / elapsedTime) * 60);
+            wpmDisplay.textContent = isNaN(wpm) ? 0 : wpm;
+            let accuracy = ((correctChars / totalChars) * 100).toFixed(1);
+            accuracyDisplay.textContent = isNaN(accuracy) ? 100 : accuracy;
+        }
+
+        function submitResult() {
+            clearInterval(interval);
+            resultDisplay.textContent = `Your final WPM: ${wpmDisplay.textContent}, Accuracy: ${accuracyDisplay.textContent}%`;
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
